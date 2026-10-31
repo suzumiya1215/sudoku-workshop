@@ -1,0 +1,12 @@
+# 测试产物与临时文件
+shots/
+_perf.html
+*.log
+
+# 依赖
+node_modules/
+
+# 系统
+.DS_Store
+Thumbs.db
+desktop.ini

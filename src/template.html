@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1b1e23">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="数独工坊">
+<meta name="format-detection" content="telephone=no">
+<title>数独工坊 · 生成器与练习册</title>
+<style id="appcss">/*CSS*/</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand">
+      <h1>数独工坊</h1>
+      <p>13 种玩法 · SE 分值评级 · 逐步讲解 · A4 练习册导出</p>
+    </div>
+    <div class="tabs">
+      <button data-tab="play" class="on">练习</button>
+      <button data-tab="train">专项训练</button>
+      <button data-tab="batch">批量出题</button>
+      <button data-tab="manual">技巧手册</button>
+    </div>
+  </div>
+
+  <!-- 练习 -->
+  <div class="panel on" id="panel-play">
+    <div class="grid-2">
+      <div class="card">
+        <div class="row" style="align-items:center;gap:10px">
+          <div><label class="f">玩法</label><select id="p-kind"></select></div>
+          <div><label class="f">难度（SE 十级）</label><select id="p-band"></select></div>
+          <div style="margin-left:auto"><button class="btn primary" id="p-new">换一道</button></div>
+        </div>
+        <div class="kv" id="p-info" style="margin-top:12px"></div>
+        <div id="p-board"></div>
+        <div class="pad" id="p-pad"></div>
+        <div class="toolbar">
+          <button class="btn" id="p-note">笔记</button>
+          <button class="btn" id="p-cand">候选数</button>
+          <button class="btn" id="p-hint">提示</button>
+          <button class="btn" id="p-check">检查</button>
+          <button class="btn" id="p-undo">撤销</button>
+          <button class="btn" id="p-pause">暂停</button>
+          <button class="btn" id="p-reset">重来</button>
+        </div>
+        <div class="toolbar">
+          <button class="btn" id="p-prev">← 上一步</button>
+          <button class="btn" id="p-all">逐步演示</button>
+          <button class="btn" id="p-print">打印本题</button>
+          <button class="btn" id="p-copy">复制题目</button>
+        </div>
+        <div class="small muted kbhelp">
+          键盘：<b>1–9</b> 填数　<b>Shift+1–9</b> 记候选　<b>0 / Delete</b> 清除　<b>方向键</b> 移动　<b>N</b> 笔记　<b>Ctrl+Z</b> 撤销　<b>空格</b> 暂停
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h2 class="sec">本题信息</h2>
+          <div class="small muted">用时 <b id="p-time">00:00</b>　<span id="p-status"></span></div>
+          <div class="small" style="margin-top:8px">用到的技巧（按次数）</div>
+          <div class="tchips" id="p-tech">—</div>
+          <div class="basis" id="p-basis"></div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <h2 class="sec">解题步骤</h2>
+          <div class="steps" id="p-steps"></div>
+          <div class="explain" id="p-explain"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 专项训练 -->
+  <div class="panel" id="panel-train">
+    <div class="grid-2">
+      <div class="card">
+        <h2 class="sec">专项训练：一次只练一种技巧</h2>
+        <div class="row" style="align-items:flex-end">
+          <div><label class="f">选择技巧</label><select id="t-tech" style="min-width:260px"></select></div>
+          <div><button class="btn primary" id="t-gen">生成练习题</button></div>
+        </div>
+        <div class="small" id="t-desc" style="margin:10px 0"></div>
+        <div class="kv" id="t-info"></div>
+        <div id="t-board"></div>
+        <div class="small muted" id="t-status"></div>
+      </div>
+      <div>
+        <div class="card">
+          <h2 class="sec">本题里的这种技巧</h2>
+          <div class="steps" id="t-steps"></div>
+          <div class="explain" id="t-explain">点左边棋盘上高亮的格子，或点上面的步骤，查看详细解释。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 批量出题 -->
+  <div class="panel" id="panel-batch">
+    <div class="grid-2">
+      <div class="card">
+        <h2 class="sec">批量出题</h2>
+        <label class="f">练习册标题</label>
+        <input type="text" id="b-title" value="数独练习册" style="width:100%">
+        <h3 class="sub">每种难度要几道（SE 十级）</h3>
+        <table class="mix">
+          <thead><tr><th style="width:30%">难度档位</th><th style="width:26%">这一档会用到的技巧</th><th style="width:86px">数量</th></tr></thead>
+          <tbody id="b-mix"></tbody>
+          <tfoot><tr><td colspan="2">合计 <b id="b-total">50</b> 道</td><td class="small muted">可随时改</td></tr></tfoot>
+        </table>
+        <div class="small muted" style="margin-top:6px">
+          提示：L7、L9 对应的是剑鱼、唯一矩形这类比较稀有的技巧，出题时会尽量贴近，偶尔会给出相邻档位（生成结果会标真实档位）。
+        </div>
+
+        <h3 class="sub">包含哪些玩法（可多选，按数量轮流分配）</h3>
+        <div class="varlist" id="b-vars"></div>
+
+        <h3 class="sub">排版选项</h3>
+        <div class="row" style="align-items:flex-end;gap:14px">
+          <div><label class="f">每页题数</label>
+            <select id="b-per"><option value="1">1 题（大字）</option><option value="2" selected>2 题</option><option value="4">4 题（小字）</option></select>
+          </div>
+          <div><label class="f">附参考答案</label><br><label class="small"><input type="checkbox" id="b-ans" checked> 文末附答案与步骤提要</label></div>
+          <div style="margin-left:auto"><button class="btn primary" id="b-go">生成</button></div>
+        </div>
+        <div class="progress"><i id="b-bar"></i></div>
+        <div class="small muted" id="b-status" style="margin-top:6px">题目在本机生成，不上传任何数据。</div>
+
+        <div class="toolbar">
+          <button class="btn primary" id="b-view">排版预览</button>
+          <button class="btn accent" id="b-print">导出 PDF（打印）</button>
+          <button class="btn" id="b-html">导出练习册 HTML</button>
+          <button class="btn" id="b-json">导出题库 JSON</button>
+        </div>
+        <div class="small muted" id="print-hint" style="margin-top:8px">打印对话框里选“另存为 PDF”，纸张 A4、边距选“无”，并勾选“背景图形”。</div>
+
+        <div class="preview" id="b-preview"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="sec">排版说明</h2>
+        <div class="small" style="line-height:2">
+          一、纸张 A4（210×297mm），页边距 15mm，页脚含书名与“第 X 页 / 共 Y 页”。<br>
+          二、首页为封面：标题、题量、难度构成、作答说明。<br>
+          三、正文每页按所选题数排布，题目上方标注题号、玩法、SE 分值与提示数。<br>
+          四、答案附在文末，四题一页，附每题步数与技巧统计。<br>
+          五、字体：标题用宋体加粗，正文用仿宋，数字用 Times New Roman，符合打印与公文排版习惯。<br>
+          六、导出的 PDF 为矢量文字，可直接双面打印或装订。
+        </div>
+        <h3 class="sub">关于难度</h3>
+        <div class="small muted" style="line-height:1.9">
+          SE 分值等于解这道题路径上最难一步的技巧权重，例如只用隐性唯一不到 1.5，出现 X-Wing 是 3.2，出现 XY-Wing 是 4.2。提示数不决定难度。<br>
+          变种题（杀手、温度计、箭头等）的 SE 只统计经典技巧：笼和、递增、求和这类约束在求解时被直接折进候选数里，没有单独计分，所以它们的 SE 偏低，实际难度请结合提示数与线索密度看。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 技巧手册 -->
+  <div class="panel" id="panel-manual">
+    <div class="card">
+      <h2 class="sec">难度档位：SE 十级</h2>
+      <div class="small muted" style="margin-bottom:8px;line-height:1.9">
+        难度只看 SE 分值（Sudoku Explainer Rating），与提示数无关。SE 等于"解这道题的路上最难的一步"用了多大的技巧，
+        所以每一档都恰好卡在一个技巧台阶上，可以从技巧表反查。
+      </div>
+      <div class="note">
+        <b>两条附加规则，先说清楚免得对不上：</b><br>
+        ① <b>带笼的题（杀手、混合）有 2.4 的底分</b>。笼内组合枚举、45 法则确实是脑力活，但它发生在候选数剪枝里、不占"一步技巧的名额"，
+        若不设底分，21 提示的杀手题会被算成 SE 1.2（极简），与实际体感完全不符。所以这类题最低定为 L3 初级，
+        也就是说<b>杀手、混合目前出不到 L1–L2，也基本到不了 L6 以上</b>。<br>
+        ② <b>批量出题时档位可能落空</b>。SE 值是离散的（一个技巧台阶就跳 0.4），某一档可能连试十几次都拿不到，
+        这时会给你最接近的那一档，并在结果里如实写明"L5→L4 ×2"这样的对应关系，不会偷偷冒充。
+      </div>
+      <table class="man man-band">
+        <thead><tr><th class="c1">档</th><th class="c2">SE 区间</th><th class="c3">最高技巧</th><th class="c4">说明</th></tr></thead>
+        <tbody id="m-band"></tbody>
+      </table>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h2 class="sec">技巧阶梯（SE 分值口径）</h2>
+      <div class="small muted" style="margin-bottom:8px">按权重从小到大排列。做题时"能不用上面的就不用下面的"，这是效率最高的顺序。</div>
+      <table class="man man-tech">
+        <thead><tr><th class="c1">SE</th><th class="c2">技巧</th><th class="c3">怎么用</th></tr></thead>
+        <tbody id="m-tech"></tbody>
+      </table>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h2 class="sec">13 种玩法：怎么玩、从哪下手</h2>
+      <div class="small muted" style="margin-bottom:12px">每种玩法都配了一张真实盘面示意图，彩色标记就是这种玩法的关键元素。</div>
+      <div class="varcards" id="m-var"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#1b1e23;color:#fff;padding:9px 16px;border-radius:8px;opacity:0;transition:.2s;pointer-events:none;font-size:13px"></div>
+<div class="pvbar" id="pvbar">
+  <span class="small muted" style="padding:0 4px">A4 · 210×297mm</span>
+  <button class="btn sm" id="pv-back">返回编辑</button>
+  <button class="btn sm primary" id="pv-print">打印 / 存 PDF</button>
+</div>
+<div class="sheets" id="sheets"></div>
+
+<script>/*JS*/</script>
+</body>
+</html>
