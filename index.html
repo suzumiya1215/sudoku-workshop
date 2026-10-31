@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f4ef">
+<title>数独工坊 Sudoku Workshop</title>
+<style>
+  html,body{height:100%;margin:0}
+  body{
+    display:flex;align-items:center;justify-content:center;
+    background:#f6f4ef;color:#2b2b2b;
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .box{text-align:center;padding:32px 26px;max-width:420px}
+  .grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:4px;
+    width:84px;height:84px;margin:0 auto 22px;
+  }
+  .grid i{background:#fff;border-radius:5px;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  .grid i:nth-child(5){background:#3b6ea5}
+  h1{font-size:20px;font-weight:600;letter-spacing:.06em;margin:0 0 8px}
+  p{font-size:13px;color:#7a7468;margin:0 0 18px;line-height:1.7}
+  a{
+    display:inline-block;padding:11px 26px;border-radius:999px;
+    background:#3b6ea5;color:#fff;text-decoration:none;font-size:14px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  a:active{transform:scale(.97)}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="grid" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <h1>数独工坊</h1>
+  <p>正在为你打开…<br>如未自动跳转，请点下面的按钮</p>
+  <a href="./%E6%95%B0%E7%8B%AC%E5%B7%A5%E5%9D%8A.html">进入数独工坊</a>
+</div>
+<script>
+  setTimeout(function () {
+    location.replace('./' + encodeURIComponent('数独工坊') + '.html');
+  }, 80);
+</script>
+</body>
+</html>
