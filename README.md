@@ -3,6 +3,9 @@
 单文件数独应用：13 种玩法、SE 十级难度、A4 练习册打印、手机可用。
 双击 `数独工坊.html` 即可运行，不需要服务器、不联网、没有外部依赖。
 
+- **在线版**：<https://suzumiya1215.github.io/sudoku-workshop/> —— 手机浏览器打开即玩，免下载
+- **仓库**：<https://github.com/suzumiya1215/sudoku-workshop>
+
 ## 特性
 
 **出题与评级**
