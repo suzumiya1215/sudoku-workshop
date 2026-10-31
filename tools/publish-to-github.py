@@ -35,7 +35,9 @@ SSH_KEY = os.path.expanduser('~/.ssh/id_ed25519.pub')
 
 def git(*args):
     env = dict(os.environ)
-    env['GIT_SSH_COMMAND'] = 'ssh -o StrictHostKeyChecking=accept-new -o BatchMode=yes'
+    # github.com:22 实测被拒（Connection refused），改走 ssh.github.com:443
+    env['GIT_SSH_COMMAND'] = ('ssh -p 443 -o StrictHostKeyChecking=accept-new '
+                              '-o BatchMode=yes')
     # core.quotepath=false 让中文文件名原样输出，否则统计大小会把它们当成不存在
     r = subprocess.run(['git', '-c', 'core.quotepath=false'] + list(args),
                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
@@ -67,7 +69,13 @@ def call(method, path, token, payload=None, expect=()):
 
 def api_upload(token, base, files, message):
     """REST 兜底：blob → tree → commit → ref，一次提交整棵树。"""
-    st, ref = call('GET', base + '/git/ref/heads/main', token, expect=(404,))
+    # 空仓库返回 409（Git Repository is empty），新仓库返回 404，两种都当无父提交
+    st, ref = call('GET', base + '/git/ref/heads/main', token, expect=(404, 409))
+    if st == 409:
+        # 空仓库连 blob 都不让建（409），先用 contents API 落一个提交打底
+        call('PUT', base + '/contents/.gitkeep', token,
+             {'message': 'chore: 初始化仓库', 'content': ''})
+        st, ref = call('GET', base + '/git/ref/heads/main', token)
     parent = ref['object']['sha'] if (st == 200 and ref) else None
     blobs = []
     for i, p in enumerate(files, 1):
@@ -90,6 +98,18 @@ def api_upload(token, base, files, message):
              {'ref': 'refs/heads/main', 'sha': commit['sha']})
     print('   已建提交 %s' % commit['sha'][:10])
     return commit['sha']
+
+
+def set_remote(login, repo):
+    """remote 走 ssh.github.com:443 —— 本机 github.com:22 被拒，443 可用。"""
+    git('remote', 'remove', 'origin')
+    code, out = git('remote', 'add', 'origin',
+                    'git@ssh.github.com:%s/%s.git' % (login, repo))
+    if code != 0:
+        raise SystemExit('配置 remote 失败：%s' % out)
+    # 让用户以后手动 `git push` 也走 443，不必每次带环境变量
+    git('config', 'core.sshCommand',
+        'ssh -p 443 -o StrictHostKeyChecking=accept-new')
 
 
 def main():
@@ -150,12 +170,8 @@ def main():
             print('③ 令牌缺少 admin:public_key 权限（%s），跳过公钥，改用 API 上传' % st)
 
     if ssh_ready:
-        git('remote', 'remove', 'origin')
-        code, out = git('remote', 'add', 'origin',
-                        'git@github.com:%s/%s.git' % (login, args.repo))
-        if code != 0:
-            raise SystemExit('配置 remote 失败：%s' % out)
-        print('④ remote 指向 git@github.com:%s/%s.git（走 22 端口）' % (login, args.repo))
+        set_remote(login, args.repo)
+        print('④ remote 指向 git@ssh.github.com:%s/%s.git（走 443 端口）' % (login, args.repo))
 
         code, br = git('rev-parse', '--abbrev-ref', 'HEAD')
         if br and br != 'main':
@@ -174,9 +190,7 @@ def main():
         code, msg = git('log', '-1', '--format=%B')
         print('④ 通过 REST API 上传整棵树')
         api_upload(args.token, base, files, msg or '初始提交')
-        git('remote', 'remove', 'origin')
-        git('remote', 'add', 'origin',
-            'git@github.com:%s/%s.git' % (login, args.repo))
+        set_remote(login, args.repo)
 
     code, out = git('ls-remote', '--heads', 'origin')
     ok = code == 0 and 'refs/heads/main' in out
